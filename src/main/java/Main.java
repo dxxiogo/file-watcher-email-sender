@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import models.services.JavaMailService;
 import models.services.MailtrapService;
 import models.services.WacthFolderService;
 
@@ -12,7 +13,7 @@ public class Main {
 		WacthFolderService watcher;
 		
 		try {
-			watcher = new WacthFolderService(rootPath, new MailtrapService());
+			watcher = new WacthFolderService(rootPath, new JavaMailService());
 			watcher.processEvents();
 		} catch (IOException e) {
 			e.printStackTrace();
