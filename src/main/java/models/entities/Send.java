@@ -4,12 +4,13 @@ import java.time.LocalDateTime;
 
 public class Send {
 	
+	private Integer id;
 	private LocalDateTime date;
 	private String recipient;
 	private String fileName;
 	private String response;
 	
-	Send () {
+	public Send () {
 		
 	}
 	
@@ -20,6 +21,14 @@ public class Send {
 		this.response = response;
 	}
 	
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public Integer getId() {
+		return id;
+	}
 
 	public LocalDateTime getDate() {
 		return date;
