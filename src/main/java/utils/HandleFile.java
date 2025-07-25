@@ -1,6 +1,5 @@
 package utils;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.time.LocalDate;
 
@@ -16,7 +15,9 @@ public final class HandleFile {
 		String clientName = fields[0];
 		String emailReplaced = fields[1].replace("(", "");
 		String email = emailReplaced.replace(")", "");
-		return new ClientSPEDFileInfo(clientName, email, LocalDate.now(), FileStatus.VALIDADO, filePath);
+		String fileStatus = filePath.getFileName().toString().contains("VALIDADO") ? "VALIDADO" : "RETIFICADO";
+		
+		return new ClientSPEDFileInfo(clientName, email, LocalDate.now(), FileStatus.valueOf(fileStatus), filePath);
 	}
 	
 	
