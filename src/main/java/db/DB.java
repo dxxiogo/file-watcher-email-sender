@@ -17,7 +17,10 @@ public class DB {
 		if (conn == null) {
 			try {
 				Properties props = loadProperties();
-				String url = props.getProperty("dburl");
+				String dbPath = props.getProperty("db.path");
+				String port = props.getProperty("db.port");
+				String server = props.getProperty("db.server");
+				String url = "jdbc:firebirdsql://" + server + ":" + port + "/" + dbPath;
 				conn = DriverManager.getConnection(url, props);
 			} catch(SQLException e) {
 				throw new DbException(e.getMessage());
