@@ -1,10 +1,8 @@
 package models.services;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Base64;
+import java.time.LocalDateTime;
 import java.util.Properties;
-
 import db.DB;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
@@ -17,13 +15,29 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
+import models.dao.DaoFactory;
+import models.dao.SendDao;
 import models.entities.ClientSPEDFileInfo;
+import models.entities.Log;
+import models.entities.Send;
+import models.entities.enums.LogStatus;
+import models.interfaces.LogService;
 import models.interfaces.MailService;
 
 public class JavaMailService implements MailService{
 
 	private final Properties config = DB.loadProperties();
+	private SendDao sendDao = DaoFactory.createDaoJDBC();
+	private LogService logService;
 	
+	
+	
+	public JavaMailService(LogService logService) {
+		this.logService = logService;
+	}
+
+
+
 	@Override
 	public void sendEmail(ClientSPEDFileInfo clientFile) {
 		
@@ -65,10 +79,14 @@ public class JavaMailService implements MailService{
 	        message.setContent(multipart);
 	        
 			Transport.send(message);
+			
+			sendDao.create(new Send(LocalDateTime.now(), clientFile.getEmail(), clientFile.getPath().toFile().getName(), "Enviado com sucesso!"));
+			
+			logService.registerLog(new Log(LocalDateTime.now(), String.format(" Enviado com sucesso! Destinatário: %s ", clientFile.getEmail()), LogStatus.SUCCESS));
 		} catch (MessagingException e) {
-			e.printStackTrace();
+			logService.registerLog(new Log(LocalDateTime.now(), e.getMessage(), LogStatus.ERROR));
 		} catch (IOException e) {
-			e.printStackTrace();
+			logService.registerLog(new Log(LocalDateTime.now(), e.getMessage(), LogStatus.ERROR));
 		}
 	
 	}
