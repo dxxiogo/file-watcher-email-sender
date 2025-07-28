@@ -4,8 +4,12 @@ import java.awt.TrayIcon;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.Properties;
 
+import models.entities.Log;
+import models.entities.enums.LogStatus;
+import models.interfaces.LogService;
 import models.services.JavaMailService;
 import models.services.LogFileService;
 import models.services.WacthFolderService;
@@ -18,10 +22,11 @@ public class Main {
 		
 		Path rootPath = Paths.get(LoadProperties.loadConfig().getProperty("monitorDir"));
 		WacthFolderService watcher;
+		LogService logService = new LogFileService();
 		
 		try {
 			if (!SystemTray.isSupported()) {
-	            System.err.println("System tray not supported");
+	            logService.registerLog(new Log(LocalDateTime.now(), "System tray not supported", LogStatus.ERROR));
 	            return;
 	        }
 
@@ -34,9 +39,9 @@ public class Main {
 			watcher = new WacthFolderService(rootPath, new JavaMailService(new LogFileService()));
 			watcher.processEvents();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logService.registerLog(new Log(LocalDateTime.now(), e.getMessage(), LogStatus.ERROR));
 		}catch (AWTException e) {
-            System.err.println("TrayIcon could not be added.");
+			logService.registerLog(new Log(LocalDateTime.now(), e.getMessage(), LogStatus.ERROR));
         }
 		
 

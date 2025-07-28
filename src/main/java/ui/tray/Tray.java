@@ -7,16 +7,27 @@ import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
-import ui.settings.SettingsUi;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+
+import ui.settingsUi.SettingsUi;
 
 public class Tray {
 
 	 public static TrayIcon createTrayIcon(Properties config) {
 
-	        Image image = Toolkit.getDefaultToolkit().createImage("icon.png");
-
+		 	File pathToFile = new File("C:\\folder-watcher-email-sender\\icon.png");
+//	        Image image = Toolkit.getDefaultToolkit().createImage("icon.png");
+		 	Image image = null;
+			try {
+				image = ImageIO.read(pathToFile);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 	        PopupMenu popup = new PopupMenu();
 
 	        MenuItem exitItem = new MenuItem("Sair");
