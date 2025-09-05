@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import models.entities.ClientSPEDFileInfo;
+import models.entities.Log;
+import models.interfaces.LogService;
 import models.interfaces.MailService;
 import utils.HandleFile;
 
@@ -25,10 +27,13 @@ public class WacthFolderService {
     private final WatchService watchService;
     private final Map<WatchKey, Path> keyPathMap = new HashMap<>();
     private final MailService mailService;
+    private final HandleFile handleFile;
 
     public WacthFolderService(Path rootDir, MailService mailService) throws IOException {
         this.watchService = FileSystems.getDefault().newWatchService();
 		this.mailService = mailService;
+		this.handleFile = new HandleFile(new LogService());
+		
         registerAll(rootDir);
     }
 
