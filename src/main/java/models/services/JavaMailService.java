@@ -17,8 +17,9 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import models.dao.DaoFactory;
 import models.dao.SendDao;
-import models.entities.ClientSPEDFileInfo;
+import models.entities.Client;
 import models.entities.Log;
+import models.entities.SPEDFile;
 import models.entities.Send;
 import models.entities.enums.LogStatus;
 import models.interfaces.LogService;
@@ -39,7 +40,7 @@ public class JavaMailService implements MailService{
 
 
 	@Override
-	public void sendEmail(ClientSPEDFileInfo clientFile) {
+	public void sendEmail(Client client) {
 		
 		Properties props = new Properties();
 		props.put("mail.smtp.host", config.getProperty("mail.smtp.host"));
@@ -61,16 +62,24 @@ public class JavaMailService implements MailService{
 		Message message = new MimeMessage(session);
 		try {
 			message.setFrom(new InternetAddress(config.getProperty("mail.smtp.user")));
-			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(clientFile.getEmail()));
-			message.setSubject(clientFile.toString());
-			message.setText("Olá! Segue o arquivo SPED em anexo.");
 			
+			for(String email : client.getEmails()) {
+				message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
+			}
+			
+			String subject = "";
 		
 			MimeBodyPart messageBodyPart = new MimeBodyPart();
 	        messageBodyPart.setText("Olá! Segue o arquivo SPED em anexo.");
 	        MimeBodyPart attachmentPart = new MimeBodyPart();
-	        attachmentPart.attachFile(clientFile.getPath().toFile());
-
+	        
+	        for (SPEDFile file : client.getFiles()) {
+	        	subject += " " + file.getFileType().toString();
+	        	attachmentPart.attachFile(file.getPath().toFile());
+	        }
+	        
+	        message.setSubject(subject + " " + client.toString());
+			message.setText("Olá! Segue os arquivos em anexo.");
 	        
 	        Multipart multipart = new MimeMultipart();
 	        multipart.addBodyPart(messageBodyPart);
@@ -80,9 +89,9 @@ public class JavaMailService implements MailService{
 	        
 			Transport.send(message);
 			
-			sendDao.create(new Send(LocalDateTime.now(), clientFile.getEmail(), clientFile.getPath().toFile().getName(), "Enviado com sucesso!"));
+			sendDao.create(new Send(LocalDateTime.now(), client.getEmails()[0], client.getFiles().get(0).getPath().toFile().getName(), "Enviado com sucesso!"));
 			
-			logService.registerLog(new Log(LocalDateTime.now(), String.format(" Enviado com sucesso! Destinatário: %s ", clientFile.getEmail()), LogStatus.SUCCESS));
+			logService.registerLog(new Log(LocalDateTime.now(), String.format(" Enviado com sucesso! Destinatário: %s ", client.getEmails()[0]), LogStatus.SUCCESS));
 		} catch (MessagingException e) {
 			logService.registerLog(new Log(LocalDateTime.now(), e.getMessage(), LogStatus.ERROR));
 		} catch (IOException e) {

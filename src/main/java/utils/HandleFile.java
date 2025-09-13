@@ -1,46 +1,36 @@
 package utils;
 
-import java.io.FileNotFoundException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
-import models.entities.ClientSPEDFileInfo;
-import models.entities.Log;
+import models.entities.Client;
+import models.entities.SPEDFile;
 import models.entities.enums.FileStatus;
-import models.entities.enums.LogStatus;
-import models.interfaces.LogService;
+import models.entities.enums.FileType;
 
 public final class HandleFile {
 	
-	private LogService logService;
 	
-	public HandleFile (LogService logService) {
-		this.logService = logService;
-	}
-	
-	public ClientSPEDFileInfo extractClientInfo (Path filePath) {
+	public static Client extractClientInfo (List<Path> filesPath) {
+		Path infoFile = filesPath.get(0).getParent().getParent().resolve("cliente.properties");
+		Properties props = LoadProperties.loadConfig(infoFile.toString());
+
+		String clientName = props.getProperty("cliente");
+		String[] emails = props.getProperty("email_contabilidade").split(" ");
 		
-		try {
-			Path propsPath = filePath.getParent().resolve("cliente.properties");
-			String parentFolderName = filePath.getParent().getFileName().toString();
-			if(!Files.isRegularFile(propsPath) && !Files.exists(propsPath)) {
-				throw new FileNotFoundException();
-			}
-			String[] fields = parentFolderName.split(" ");
-			String clientName = fields[0];
-			String emailReplaced = fields[1].replace("(", "");
-			String email = emailReplaced.replace(")", "");
-			String fileStatus = filePath.getFileName().toString().contains("VALIDADO") ? "VALIDADO" : "RETIFICADO";
+		List<SPEDFile> files = new ArrayList<>();
+		
+		for(Path p : filesPath) {
+			String fileType = p.getFileName().toString().toUpperCase().contains("SPED") ? "SPED" : "CONTRIBUICOES";
+			String fileStatus = p.getFileName().toString().contains("VALIDADO") ? "VALIDADO" : "RETIFICADO";
+			files.add(new SPEDFile(p, FileType.valueOf(fileType), FileStatus.valueOf(fileStatus)));
 			
-			return new ClientSPEDFileInfo(clientName, email, LocalDate.now(), FileStatus.valueOf(fileStatus), filePath);
-		} catch (Exception e) {
-			logService.registerLog(new Log(LocalDateTime.now(), e.getMessage(), LogStatus.ERROR));
-			return null;
 		}
 		
+		return new Client(clientName, emails, LocalDate.now(), files);
+	
 	}
-	
-	
 }

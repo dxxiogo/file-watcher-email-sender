@@ -17,6 +17,11 @@
 			<artifactId>javax.mail</artifactId>
 			<version>1.6.2</version>
 		</dependency>
+       <dependency>
+  			<groupId>org.firebirdsql.jdbc</groupId>
+  			<artifactId>jaybird</artifactId>
+  			<version>4.0.10.java8</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>

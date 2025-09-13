@@ -7,12 +7,11 @@ import java.util.Properties;
 
 public class LoadProperties {
 	
-	public static final String CONFIG_FILE = "config.properties";
+	public final static String CONFIG_FILE = "config.properties"; 
 	
-	
-	 public static Properties loadConfig() {
+	 public static Properties loadConfig(String propsFile) {
 	        Properties props = new Properties();
-	        File file = new File(CONFIG_FILE);
+	        File file = new File(propsFile);
 	        if (file.exists()) {
 	            try (FileInputStream in = new FileInputStream(file)) {
 	                props.load(in);
@@ -22,6 +21,5 @@ public class LoadProperties {
 	        }
 	        return props;
 	    }
-
 	  
 }

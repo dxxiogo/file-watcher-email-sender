@@ -20,7 +20,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		
-		Path rootPath = Paths.get(LoadProperties.loadConfig().getProperty("monitorDir"));
+		Path rootPath = Paths.get(LoadProperties.loadConfig("config.properties").getProperty("monitorDir"));
 		WacthFolderService watcher;
 		LogService logService = new LogFileService();
 		
@@ -30,7 +30,7 @@ public class Main {
 	            return;
 	        }
 
-	        Properties config = LoadProperties.loadConfig();
+	        Properties config = LoadProperties.loadConfig("config.properties");
 
 	        TrayIcon trayIcon = Tray.createTrayIcon(config);
 	        SystemTray tray = SystemTray.getSystemTray();
