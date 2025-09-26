@@ -2,8 +2,6 @@ package models.services;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -14,29 +12,18 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import models.entities.Client;
-import models.interfaces.LogService;
-import models.interfaces.MailService;
-import utils.HandleFile;
 
 public class WacthFolderService {
 
 	private final WatchService watchService;
 	private final Map<WatchKey, Path> keyPathMap = new HashMap<>();
-	private final MailService mailService;
-	private final LogService logService;
+	private final HandleFileService fileService;
 
-	public WacthFolderService(Path rootDir, MailService mailService) throws IOException {
+	public WacthFolderService(Path rootDir, HandleFileService fileService) throws IOException {
 		this.watchService = FileSystems.getDefault().newWatchService();
-		this.mailService = mailService;
-		this.logService = new LogFileService();
+		this.fileService = fileService;
 
 		registerAll(rootDir);
 	}
@@ -75,51 +62,7 @@ public class WacthFolderService {
 				Path child = dir.resolve(name);
 
 				if (kind == ENTRY_CREATE) {
-					if (Files.isDirectory(child)) {
-						System.out.println("A directory was created: " + child);
-						registerAll(child);
-					} else if (Files.isRegularFile(child)) {
-						System.out.println("A file was created: " + child);
-						if (child.toString().toUpperCase().contains("VALIDADO")
-								|| child.toString().toUpperCase().contains("RETIFICADO")) {
-							File parentFolder = new File(child.getParent().toString());
-							List<Path> pathFiles = new ArrayList<>();
-							List<File> listFiles = Arrays.asList(parentFolder.listFiles());
-							List<File> filesFiltered = listFiles.stream()
-									.filter(file -> (file.getName().toUpperCase().contains("SPED")
-											&& file.getName().contains("VALIDADO"))
-											|| (file.getName().toUpperCase().contains("CONTRIBUICOES")
-													&& file.getName().contains ("VALIDADO")))
-									.collect(Collectors.toList());
-
-							if (filesFiltered.size() > 1) {
-								String filesNameConcateneted = "";
-
-								for (File file : filesFiltered) {
-									filesNameConcateneted += file.getName();
-									pathFiles.add(file.toPath());
-								}
-
-								if (filesNameConcateneted.toUpperCase().contains("CONTRIBUICOES")
-										&& filesNameConcateneted.toUpperCase().contains("SPED")) {
-									Client client = HandleFile.extractClientInfo(pathFiles);
-									System.out.println("Extracted info: " + client);
-									this.mailService.sendEmail(client);
-								}
-
-							} else {
-
-								boolean hasContribuicoes = listFiles.stream()
-										.anyMatch(file -> file.getName().toUpperCase().contains("CONTRIBUICOES"));
-								if (!hasContribuicoes) {
-									pathFiles.add(child);
-									Client client = HandleFile.extractClientInfo(pathFiles);
-									System.out.println("Extracted info: " + client);
-									this.mailService.sendEmail(client);
-								}
-							}
-						}
-					}
+					fileService.handleFile(child);
 				}
 			}
 
