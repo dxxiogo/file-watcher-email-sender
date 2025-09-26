@@ -2,20 +2,14 @@ package models.entities;
 
 import java.nio.file.Path;
 
-import models.entities.enums.FileStatus;
-import models.entities.enums.FileType;
-
 public class SPEDFile {
 		
 	private Path path;
-    private FileType fileType;
-    private FileStatus status;
+	private String sufixe;
     
-	public SPEDFile(Path path, FileType fileType, FileStatus status) {
-		super();
+	public SPEDFile(Path path, String sufixe) {
 		this.path = path;
-		this.fileType = fileType;
-		this.status = status;
+		this.sufixe = sufixe;
 	}
 
 	public Path getPath() {
@@ -26,28 +20,13 @@ public class SPEDFile {
 		this.path = path;
 	}
 
-	public FileType getFileType() {
-		return fileType;
+	public String getSufixe() {
+		return sufixe;
 	}
 
-	public void setFileType(FileType fileType) {
-		this.fileType = fileType;
+	public void setSufixe(String sufixe) {
+		this.sufixe = sufixe;
 	}
 
-	public FileStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(FileStatus status) {
-		this.status = status;
-	}
-
-	@Override
-	public String toString() {
-		return fileType.toString();
-	}
 	
-	
-    
-    
 }
