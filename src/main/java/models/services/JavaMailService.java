@@ -1,9 +1,12 @@
 package models.services;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Properties;
+
 import db.DB;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.activation.FileDataSource;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -37,8 +40,6 @@ public class JavaMailService implements MailService{
 		this.logService = logService;
 	}
 
-
-
 	@Override
 	public void sendEmail(Client client) {
 		
@@ -67,25 +68,24 @@ public class JavaMailService implements MailService{
 				message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
 			}
 			
-			String subject = "";
 		
 			MimeBodyPart messageBodyPart = new MimeBodyPart();
-	        messageBodyPart.setText("Olá! Segue o arquivo SPED em anexo.");
-	        MimeBodyPart attachmentPart = new MimeBodyPart();
-	        
-	        for (SPEDFile file : client.getFiles()) {
-	        	subject += " " + file.getFileType().toString();
-	        	attachmentPart.attachFile(file.getPath().toFile());
-	        }
-	        
-	        message.setSubject(subject + " " + client.toString());
-			message.setText("Olá! Segue os arquivos em anexo.");
-	        
-	        Multipart multipart = new MimeMultipart();
-	        multipart.addBodyPart(messageBodyPart);
-	        multipart.addBodyPart(attachmentPart);
+	        messageBodyPart.setText("Olá! Segue os arquivos em anexo.");
+	           
+        	Multipart multipart = new MimeMultipart();
 
-	        message.setContent(multipart);
+
+        	for (SPEDFile file : client.getFiles()) {
+        	    MimeBodyPart attachmentPart = new MimeBodyPart();
+        	    DataSource source = new FileDataSource(file.getPath().toFile());
+        	    attachmentPart.setDataHandler(new DataHandler(source));
+        	    attachmentPart.setFileName(file.getPath().getFileName().toString());
+        	    multipart.addBodyPart(attachmentPart);
+        	}
+        	
+        	message.setSubject(client.toString());
+        	message.setContent(multipart);
+
 	        
 			Transport.send(message);
 			
@@ -93,8 +93,6 @@ public class JavaMailService implements MailService{
 			
 			logService.registerLog(new Log(LocalDateTime.now(), String.format(" Enviado com sucesso! Destinatário: %s ", client.getEmails()[0]), LogStatus.SUCCESS));
 		} catch (MessagingException e) {
-			logService.registerLog(new Log(LocalDateTime.now(), e.getMessage(), LogStatus.ERROR));
-		} catch (IOException e) {
 			logService.registerLog(new Log(LocalDateTime.now(), e.getMessage(), LogStatus.ERROR));
 		}
 	
